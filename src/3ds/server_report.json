@@ -1,0 +1,39 @@
+{
+    "uri": "server.gltf",
+    "mimeType": "model/gltf+json",
+    "validatorVersion": "2.0.0-dev.3.5",
+    "validatedAt": "2021-11-01T09:50:05.339Z",
+    "issues": {
+        "numErrors": 0,
+        "numWarnings": 0,
+        "numInfos": 0,
+        "numHints": 0,
+        "messages": [],
+        "truncated": false
+    },
+    "info": {
+        "version": "2.0",
+        "generator": "babylon.js glTF exporter for 3dsmax 2021 v20210811.2",
+        "resources": [
+            {
+                "pointer": "/buffers/0",
+                "mimeType": "application/gltf-buffer",
+                "storage": "external",
+                "uri": "server.bin",
+                "byteLength": 269256
+            }
+        ],
+        "animationCount": 0,
+        "materialCount": 4,
+        "hasMorphTargets": false,
+        "hasSkins": false,
+        "hasTextures": false,
+        "hasDefaultScene": true,
+        "drawCallCount": 67,
+        "totalVertexCount": 9122,
+        "totalTriangleCount": 8388,
+        "maxUVs": 0,
+        "maxInfluences": 0,
+        "maxAttributes": 2
+    }
+}
