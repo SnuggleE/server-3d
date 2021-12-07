@@ -7,7 +7,7 @@
       </p>
       <hr>
       <p>
-        <input type="text" :value="modelUrl">
+        <input type="text" v-model="modelUrl">
         <button @click="importModelFromFile">导入模型</button>
       </p>
       <hr>
@@ -18,8 +18,14 @@
       </p>
       <p>
         <button @click="setVisibility">修改透明度</button>
-        <button>修改颜色</button>
+        <button @click="setColor">修改颜色</button>
         <button @click="moveToMesh">缩放</button>
+      </p>
+      <hr>
+      <p>
+        <button @click="importDoor">导入门</button>
+        <button @click="closeDoor">关门</button>
+
       </p>
       <hr>
     </div>
@@ -36,7 +42,7 @@ export default {
       scene: null,
       camera: null,
       selectMesh: '',
-      modelUrl: 'http://localhost:8080/'
+      modelUrl: 'http://localhost:8082/'
     }
   },
   computed: {
@@ -63,7 +69,8 @@ export default {
         var camera = new BABYLON.ArcRotateCamera('camera',  Math.PI / 2, Math.PI/ 2, 5, new BABYLON.Vector3(0,0,0))
         camera.attachControl(canvas, true)
         this.camera = camera
-        var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene)
+        var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 100, 0), scene)
+        light.intensitySearch  = 1
         return scene
 
       }
@@ -72,7 +79,6 @@ export default {
         this.scene.render()
       })
       window.addEventListener('resize', function() {
-        console.log(engine)
         engine.resize()
       })
     },
@@ -94,7 +100,9 @@ export default {
     moveToMesh() {
       if(this.selectMesh) {
         const mesh = this.scene.getMeshByID(this.selectMesh)
-        this.camera.setTarget(mesh)
+        this.camera.setTarget(mesh, {
+          toBoundingCenter: true
+        })
       } else {
         alert('请选择')
       }
@@ -106,12 +114,42 @@ export default {
         mesh.visibility = 0.2
       }
     },
+    setColor() {
+      if(this.selectMesh) {
+        const mesh  = this.scene.getMeshByID(this.selectMesh)
+        console.log(mesh)
+        var redMat = new BABYLON.StandardMaterial("ground", this.scene);
+        redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+        redMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+        redMat.emissiveColor = BABYLON.Color3.Red();
+        mesh.material = redMat
+      }
+    },
     importModelFromFile() {
       console.log(this.modelUrl)
-      BABYLON.SceneLoader.ImportMeshAsync('', this.modelUrl, "server.babylon", this.scene)
-      .then(result => {
+      BABYLON.SceneLoader.Append(this.modelUrl, "server.babylon", this.scene, (result) => {
         console.log(result)
-      });
+      })
+    },
+    importDoor() {
+      BABYLON.SceneLoader.ImportMeshAsync('', this.modelUrl, 'door.babylon', this.scene)
+      .then(res => {
+        // const door = this.scene.getMeshByName('door')
+        // door.scaling = new BABYLON.Vector3(10, 10, 10)
+        // const doorAxis = this.scene.getMeshByName('Box001')
+        // doorAxis.scaling = new BABYLON.Vector3(10, 10, 10)
+      })
+    },
+    closeDoor() {
+      const doorAxis = this.scene.getMeshByName('Box001')
+      const door = this.scene.getMeshByName('door')
+      const origin = doorAxis.getPivotPoint()
+      const origin2 = origin.clone()
+      origin2.y = 10
+      if(door) {
+        door.rotateAround(origin, origin2, Math.PI / 2, BABYLON.Space.LOCAL)
+        this.scene.render()
+      }
     }
   }
 
@@ -125,7 +163,7 @@ export default {
   display: flex;
   justify-content: flex-start;
   #canvas{
-    width: 800px;
+    width: 1200px;
     height: 800px;
     border: 1px solid #123;
   }
