@@ -13,7 +13,7 @@
       <hr>
       <p>
         <select name="mode" v-model="selectMesh" id="">
-          <option v-for="mesh in meshes" :key="mesh.id" :value="mesh.id">{{mesh.name}}</option>
+          <option v-for="mesh in meshes" :key="mesh.id" :value="mesh.name">{{mesh.name}}</option>
         </select>
       </p>
       <p>
@@ -23,9 +23,7 @@
       </p>
       <hr>
       <p>
-        <button @click="importDoor">导入门</button>
-        <button @click="closeDoor">关门</button>
-
+        <button @click="toggleDoor()">开/关门</button>
       </p>
       <hr>
     </div>
@@ -34,6 +32,7 @@
 
 <script>
 import * as BABYLON from 'babylonjs'
+import * as GUI from 'babylonjs-gui'
 
 export default {
   name: 'Home',
@@ -42,7 +41,8 @@ export default {
       scene: null,
       camera: null,
       selectMesh: '',
-      modelUrl: 'http://localhost:8082/'
+      modelUrl: 'http://localhost:8081/',
+      doorStatus: false
     }
   },
   computed: {
@@ -81,9 +81,9 @@ export default {
       window.addEventListener('resize', function() {
         engine.resize()
       })
+      this.importModelFromFile()
     },
     addModel() {
-      console.log(this.scene)
       var redBox = BABYLON.Mesh.CreateBox("red", 5, this.scene);
       var redMat = new BABYLON.StandardMaterial("ground", this.scene);
       redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
@@ -94,12 +94,11 @@ export default {
 
       var sphere = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, this.scene);
 
-    // Move the sphere upward 1/2 its height
       sphere.position.y = 1;
     },
     moveToMesh() {
       if(this.selectMesh) {
-        const mesh = this.scene.getMeshByID(this.selectMesh)
+        const mesh = this.scene.getMeshByName(this.selectMesh)
         this.camera.setTarget(mesh, {
           toBoundingCenter: true
         })
@@ -109,14 +108,16 @@ export default {
 
     },
     setVisibility() {
+      console.log(this.selectMesh)
       if(this.selectMesh) {
-        const mesh = this.scene.getMeshByID(this.selectMesh)
+        const mesh = this.scene.getMeshByName(this.selectMesh)
+        console.log(mesh)
         mesh.visibility = 0.2
       }
     },
     setColor() {
       if(this.selectMesh) {
-        const mesh  = this.scene.getMeshByID(this.selectMesh)
+        const mesh  = this.scene.getMeshByName(this.selectMesh)
         console.log(mesh)
         var redMat = new BABYLON.StandardMaterial("ground", this.scene);
         redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
@@ -126,29 +127,55 @@ export default {
       }
     },
     importModelFromFile() {
-      console.log(this.modelUrl)
-      BABYLON.SceneLoader.Append(this.modelUrl, "server.babylon", this.scene, (result) => {
-        console.log(result)
-      })
-    },
-    importDoor() {
-      BABYLON.SceneLoader.ImportMeshAsync('', this.modelUrl, 'door.babylon', this.scene)
+      BABYLON.SceneLoader.ImportMeshAsync('', this.modelUrl, "server-room.babylon", this.scene)
       .then(res => {
-        // const door = this.scene.getMeshByName('door')
-        // door.scaling = new BABYLON.Vector3(10, 10, 10)
-        // const doorAxis = this.scene.getMeshByName('Box001')
-        // doorAxis.scaling = new BABYLON.Vector3(10, 10, 10)
+        console.log(this.scene.meshes)
+        const wall = this.scene.getMeshByName('Line001')
+        this.camera.setTarget(wall)
+        this.showBrand()
       })
     },
-    closeDoor() {
-      const doorAxis = this.scene.getMeshByName('Box001')
+    showBrand() {
+      const meshes = this.scene.meshes
+      meshes.forEach(mesh => {
+        if(mesh.name && mesh.name.indexOf('cabinet') > -1) {
+          const index = mesh.name.replace('cabinet', '')
+
+          var plane = BABYLON.Mesh.CreatePlane("plane" + index, 1);
+          plane.parent = mesh;
+          plane.position.y = 2.5;
+
+          plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+          var advancedTexture = GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+          var button1 = GUI.Button.CreateSimpleButton("but" + index, mesh.name);
+          button1.width = 1;
+          button1.height = 0.4;
+          button1.color = "white";
+          button1.fontSize = 90;
+          button1.background = "green";
+          button1.metadata = {
+            origin: mesh.name
+          }
+          button1.onPointerUpObservable.add(function(e, state) {
+            console.log(state.target)
+              // alert("you did it!");
+          });
+          advancedTexture.addControl(button1);
+
+
+        }
+      })
+    },
+    toggleDoor() {
+      const doorAxis = this.scene.getMeshByName('doorAxis')
       const door = this.scene.getMeshByName('door')
-      const origin = doorAxis.getPivotPoint()
-      const origin2 = origin.clone()
-      origin2.y = 10
+      const origin = doorAxis.getAbsolutePivotPoint()
+      const origin2 = new BABYLON.Vector3(0, 1, 0)
+      const angle = this.doorStatus ? Math.PI / 2 : -Math.PI / 2
       if(door) {
-        door.rotateAround(origin, origin2, Math.PI / 2, BABYLON.Space.LOCAL)
+        door.rotateAround(origin, origin2, angle)
         this.scene.render()
+        this.doorStatus = !this.doorStatus
       }
     }
   }
@@ -165,7 +192,6 @@ export default {
   #canvas{
     width: 1200px;
     height: 800px;
-    border: 1px solid #123;
   }
   .btns{
     padding: 10px;

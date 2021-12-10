@@ -1851,7 +1851,14 @@ babel-plugin-polyfill-regenerator@^0.3.0:
   dependencies:
     "@babel/helper-define-polyfill-provider" "^0.3.0"
 
-babylonjs@^4.2.0:
+babylonjs-gui@^4.2.0:
+  version "4.2.0"
+  resolved "http://192.168.1.200:4873/babylonjs-gui/-/babylonjs-gui-4.2.0.tgz#f9370e922d6de5f99ebbeddd4a15972621ee1941"
+  integrity sha1-+TcOki1t5fmeu+3dShWXJiHuGUE=
+  dependencies:
+    babylonjs "4.2.0"
+
+babylonjs@4.2.0, babylonjs@^4.2.0:
   version "4.2.0"
   resolved "https://registry.npmmirror.com/babylonjs/download/babylonjs-4.2.0.tgz#8f0d957a726de4c065904b14c2f413f455145d38"
   integrity sha1-jw2VenJt5MBlkEsUwvQT9FUUXTg=
